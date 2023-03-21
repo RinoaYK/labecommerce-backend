@@ -2,23 +2,29 @@
   "name": "labecommerce-backend",
   "version": "1.0.0",
   "description": "Backend Labenu",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node ./index.js",
-    "game1": "node ./par-ou-impar.js",
-    "game2": "node ./pedra-papel-tesoura.js",
+  "main": "index.js",  
+  "scripts": {    
+    "start":"tsc && node ./build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RinoaYK/labecommerce-backend.git"
   },
-  "keywords": ["labecommerce", "lidiay", "backend", "labenu"],
+  "keywords": [
+    "labecommerce",
+    "lidiay",
+    "backend",
+    "labenu"
+  ],
   "author": "Lidia Yamamura",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/RinoaYK/labecommerce-backend/issues"
   },
-  "homepage": "https://github.com/RinoaYK/labecommerce-backend#readme"
+  "homepage": "https://github.com/RinoaYK/labecommerce-backend#readme",
+  "devDependencies": {
+    "@types/node": "^18.15.5",
+    "typescript": "^5.0.2"
+  }
 }
