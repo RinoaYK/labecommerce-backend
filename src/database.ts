@@ -26,9 +26,15 @@ export const products: TProduct[] = [
     price: 25.3,
     category: CATEGORY.TSHIRTS,
   },
+  {
+    id: "Foguete De Brinquedo",
+    name: "Foguete De Brinquedo",
+    price: 29.99,
+    category: CATEGORY.TOYS,
+  },  
 ];
 
-function calculateTotalPrice(productId: string, quantity: number) {
+export function calculateTotalPrice(productId: string, quantity: number) {
   const product = products.find((p) => p.id === productId);
   if (!product) {
     throw new Error(`Produto ${productId} não encontrado!`);
