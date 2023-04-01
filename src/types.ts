@@ -1,7 +1,9 @@
 export type TUser = {
   id: string;
+  name: string;
   email: string;
   password: string;
+  createdAt: string; // formato: YYYY-MM-DD HH:MM:SS
 };
 
 export enum CATEGORY {
@@ -18,12 +20,17 @@ export type TProduct = {
   id: string;
   name: string;
   price: number;
-  category: CATEGORY
+  category: CATEGORY;
+  description: string;
+  imageUrl: string;
 };
 
 export type TPurchase = {
-  userId: string;
-  productId: string;
-  quantity: number;
-  totalPrice: number;
+  id: string,
+  buyer: string,
+  totalPrice: number,
+  products: Array<{
+    product: TProduct,
+    quantity: number
+  }>
 };
