@@ -137,7 +137,13 @@ app.post("/users", (req: Request, res: Response) => {
     } else if (typeof email !== "string") {
       res.status(400);
       throw new Error("Email precisa ser uma string!");
+    } else if (
+      !email.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$")
+    ) {
+      res.status(400);
+      throw new Error("Email precisa ser exemplo@gmail.com");
     }
+
     const emailExists = users.filter((user) => {
       return user.email === email;
     });
