@@ -121,29 +121,6 @@ WHERE id = "u003";
 
 DELETE FROM users WHERE id = "u001";
 
--- purchases
-
-CREATE TABLE
-    purchases (
-        id TEXT PRIMARY KEY UNIQUE NOT NULL,
-        buyer TEXT NOT NULL,
-        totalPrice REAL,
-        products TEXT NOT NULL
-    );
-
-SELECT * FROM purchases;
-
-DROP TABLE purchases;
-
-INSERT INTO
-    purchases (id, buyer, totalPrice, products)
-VALUES (
-        'pur001',
-        'u001',
-        89.97,
-        '{"product": {"id": "prod001", "name": "Foguete de Brinquedo", "price": 29.99, "category": "Acessórios", "description": "Este foguete de brinquedo é altamente detalhado e vem com uma variedade de acessórios, incluindo adesivos de planetas e estrelas.", "imageUrl": "https://github.com/RinoaYK/projeto-frontendreact/blob/main/src/img/items/img1.png?raw=true"}, "quantity": 2}, {"product": {"id": "prod002", "name": "Camiseta Sistema Solar", "price": 29.99, "category": "Camisetas", "description": "Esta camiseta é feita de algodão macio e tem uma estampa do Sistema Solar na frente.", "imageUrl": "https://github.com/RinoaYK/projeto-frontendreact/blob/main/src/img/items/img2.png?raw=true"}, "quantity": 1}}'
-    );
-
 --testes:
 
 SELECT AVG(price) FROM products;
@@ -285,3 +262,62 @@ SELECT *
 FROM products
 WHERE price >= 10 AND price <= 30
 ORDER BY price ASC;
+
+--ex1
+-- purchases
+CREATE TABLE
+    purchases (
+        id TEXT PRIMARY KEY UNIQUE NOT NULL,
+        total_price REAL NOT NULL,        
+        paid INTEGER NOT NULL DEFAULT 0,
+        delivered_at TEXT,
+        buyer_id TEXT NOT NULL,        
+        FOREIGN KEY (buyer_id) REFERENCES users(id)
+    );
+
+SELECT * FROM purchases
+ORDER BY buyer_id ASC;
+
+DROP TABLE purchases;
+
+--ex2
+-- a) Crie dois pedidos para cada usuário cadastrado
+-- No mínimo 4 no total (ou seja, pelo menos 2 usuários diferentes) e devem iniciar com a data de entrega nula.
+INSERT INTO
+    purchases (id, total_price, buyer_id)
+VALUES 
+    ("pur001", 100, "u001"),
+    ("pur002", 130, "u001"),
+    ("pur003", 200, "u002"),
+    ("pur004", 140, "u003"),
+    ("pur005", 180, "u003"),
+    ("pur006", 500, "u004"),
+    ("pur007", 160, "u004"),
+    ("pur008", 40, "u001");
+
+-- b) Edite o status da data de entrega de um pedido
+-- Simule que o pedido foi entregue no exato momento da sua edição (ou seja, data atual).
+-- delivered_at = datetime('now', '-3 hours'),
+-- delivered_at = datetime('now', 'localtime'),
+UPDATE purchases
+SET
+    delivered_at = datetime('now', 'localtime'),
+    paid = 1
+WHERE id = "pur001";
+
+-- ex3
+-- Crie a query de consulta utilizando junção para simular um endpoint de histórico de compras de um determinado usuário.
+-- Mocke um valor para a id do comprador, ela deve ser uma das que foram utilizadas no exercício 2.
+SELECT
+    users.id as userId,
+    name,
+    purchases.id as purchaseId,
+    total_price as "Total price",
+    CASE WHEN paid = 0 THEN 'not paid' ELSE 'paid' END AS "Paid Status",
+    delivered_at as deliveredAt
+FROM users
+    INNER JOIN purchases ON purchases.buyer_id = users.id
+WHERE users.id= "u001"
+ORDER BY purchases.id DESC;
+
+
