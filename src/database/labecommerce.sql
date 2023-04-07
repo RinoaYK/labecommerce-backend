@@ -269,7 +269,7 @@ CREATE TABLE
     purchases (
         id TEXT PRIMARY KEY UNIQUE NOT NULL,
         total_price REAL NOT NULL,        
-        paid INTEGER NOT NULL DEFAULT 0,
+        paid INTEGER NOT NULL DEFAULT (0),
         delivered_at TEXT,
         buyer_id TEXT NOT NULL,        
         FOREIGN KEY (buyer_id) REFERENCES users(id)
@@ -319,5 +319,63 @@ FROM users
     INNER JOIN purchases ON purchases.buyer_id = users.id
 WHERE users.id= "u001"
 ORDER BY purchases.id DESC;
+
+--ex1
+CREATE TABLE purchases_products (
+    purchase_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT(1),
+    FOREIGN KEY (purchase_id) REFERENCES purchases(id),
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    PRIMARY KEY (purchase_id, product_id)
+);
+
+SELECT * FROM purchases_products;
+
+DROP TABLE purchases_products;
+
+INSERT INTO purchases_products (purchase_id, product_id, quantity)
+VALUES
+('pur001', 'prod001', 5),
+('pur002', 'prod001', 3),
+('pur003', 'prod002', 2),
+('pur004', 'prod003', 4),
+('pur005', 'prod010', 3),
+('pur006', 'prod010', 7),
+('pur007', 'prod040', 1);
+
+SELECT *
+FROM purchases_products
+INNER JOIN purchases ON purchases.id = purchases_products.purchase_id
+INNER JOIN products ON products.id = purchases_products.product_id;
+
+UPDATE purchases
+SET total_price = (
+    SELECT SUM(products.price * purchases_products.quantity)
+    FROM purchases_products
+    JOIN products ON products.id = purchases_products.product_id
+    WHERE purchases_products.purchase_id = purchases.id
+)
+WHERE EXISTS (
+    SELECT 1
+    FROM purchases_products
+    WHERE purchases_products.purchase_id = purchases.id
+);
+
+SELECT 
+    purchases_products.purchase_id AS "Id da compra",
+    purchases_products.product_id AS "Id do produto",
+    products.name AS "Nome do produto",
+    products.price AS "Preço unitário",
+    purchases_products.quantity AS Quantidade,    
+    purchases.total_price AS Total,
+    CASE WHEN purchases.paid = 0 THEN 'not paid' ELSE 'paid' END AS "Status do pagamento",
+    purchases.delivered_at AS "Data de entrega",
+    users.id AS "Id do comprador",
+    users.name AS "Nome do comprador"
+FROM purchases_products
+INNER JOIN purchases ON purchases.id = purchases_products.purchase_id
+INNER JOIN products ON products.id = purchases_products.product_id
+INNER JOIN users ON users.id = purchases.buyer_id;
 
 
