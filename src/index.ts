@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import { db } from "./database/knex";
 import {
   users,
   products,
@@ -23,10 +24,14 @@ app.get("/ping", (req: Request, res: Response) => {
   res.send("Pong!");
 });
 
-//getAllUsers
-app.get("/users", (req: Request, res: Response) => {
+//ex1 10_04
+//getAllUsers refatorado
+app.get("/users", async (req: Request, res: Response) => {
   try {
-    res.status(200).send(users);
+    const result = await db.raw(`
+    SELECT * FROM users;
+    `);
+    res.status(200).send(result);
   } catch (error) {
     console.log(error);
     if (res.statusCode === 200) {
@@ -40,10 +45,13 @@ app.get("/users", (req: Request, res: Response) => {
   }
 });
 
-//getAllProducts
-app.get("/products", (req: Request, res: Response) => {
+//getAllProducts refatorado
+app.get("/products", async (req: Request, res: Response) => {
   try {
-    res.status(200).send(products);
+    const result = await db.raw(`
+    SELECT * FROM products;
+    `);
+    res.status(200).send(result);
   } catch (error) {
     console.log(error);
     if (res.statusCode === 200) {
@@ -57,8 +65,8 @@ app.get("/products", (req: Request, res: Response) => {
   }
 });
 
-//searchProductByName
-app.get("/product/search", (req: Request, res: Response) => {
+//searchProductByName refatorado
+app.get("/product/search", async (req: Request, res: Response) => {
   try {
     const q = req.query.q as string;
     // const {q} = req.query
@@ -66,9 +74,16 @@ app.get("/product/search", (req: Request, res: Response) => {
       res.status(400);
       throw new Error("Query params deve possuir pelo menos 1 caracter!");
     }
-    const result: TProduct[] = products.filter((product) => {
-      return product.name.toLowerCase().includes(q.toString().toLowerCase());
-    });
+    // const result: TProduct[] = products.filter((product) => {
+    //   return product.name.toLowerCase().includes(q.toString().toLowerCase());
+    // });
+
+    const result = await db.raw(
+      `
+  SELECT * FROM products WHERE LOWER(name) LIKE :filter;
+`,
+      { filter: `%${q.toLowerCase()}%` }
+    );
 
     res.status(200).send(result);
   } catch (error) {
@@ -84,8 +99,9 @@ app.get("/product/search", (req: Request, res: Response) => {
   }
 });
 
-//createUser
-app.post("/users", (req: Request, res: Response) => {
+//ex2 10_04
+//createUser refatorado
+app.post("/users", async (req: Request, res: Response) => {
   try {
     const id = req.body.id;
     const name = req.body.name;
@@ -105,14 +121,20 @@ app.post("/users", (req: Request, res: Response) => {
       throw new Error("O id deve começar com a letra 'u'!");
     }
 
-    const userExists = users.filter((user) => {
-      return user.id === id;
-    });
+    // const userExists = users.filter((user) => {
+    //   return user.id === id;
+    // });
 
-    if (userExists.length > 0) {
-      res.status(400);
-      throw new Error("o usúário já existe!!");
-    }
+    const [userExists] = await db.raw(`
+    SELECT * FROM users
+    WHERE id = "${id}";
+  `); 
+  
+  if (userExists) {
+    res.status(400);
+    throw new Error("O id de usuário já existe!!");
+  }
+    
 
     if (name === undefined || name === "") {
       res.status(400);
@@ -122,13 +144,18 @@ app.post("/users", (req: Request, res: Response) => {
       throw new Error("Nome precisa ser uma string!");
     }
 
-    const nameExists = users.filter((user) => {
-      return user.name === name;
-    });
+    // const nameExists = users.filter((user) => {
+    //   return user.name === name;
+    // });
 
-    if (nameExists.length > 0) {
+    const [nameExists] = await db.raw(`
+    SELECT * FROM users
+    WHERE name = "${name}";
+  `); 
+
+    if (nameExists) {
       res.status(400);
-      throw new Error("o usúário já existe!!");
+      throw new Error("O usúário já existe!!");
     }
 
     if (email === undefined || email === "") {
@@ -144,11 +171,16 @@ app.post("/users", (req: Request, res: Response) => {
       throw new Error("Email precisa ser exemplo@gmail.com");
     }
 
-    const emailExists = users.filter((user) => {
-      return user.email === email;
-    });
+    // const emailExists = users.filter((user) => {
+    //   return user.email === email;
+    // });
 
-    if (emailExists.length > 0) {
+    const [emailExists] = await db.raw(`
+    SELECT * FROM users
+    WHERE email = "${email}";
+  `);
+
+    if (emailExists) {
       res.status(400);
       throw new Error("Email já utilizado!");
     }
@@ -187,9 +219,15 @@ app.post("/users", (req: Request, res: Response) => {
       createdAt: dateString,
     };
 
-    users.push(newUser);
+    // users.push(newUser);
+    await db.raw(`
+    INSERT INTO users (id, name, email, password)
+    VALUES ("${newUser.id}", "${newUser.name}", "${newUser.email}", "${newUser.password}");
+  `);
+
     res.status(201).send("Usuário cadastrado com sucesso!");
   } catch (error) {
+    
     console.log(error);
     if (res.statusCode === 200) {
       res.status(500);
@@ -202,8 +240,8 @@ app.post("/users", (req: Request, res: Response) => {
   }
 });
 
-//createProduct
-app.post("/products", (req: Request, res: Response) => {
+//createProduct refatorado
+app.post("/products", async (req: Request, res: Response) => {
   try {
     const id = req.body.id;
     const name = req.body.name;
@@ -225,11 +263,15 @@ app.post("/products", (req: Request, res: Response) => {
       throw new Error("O id deve começar com a string 'prod'!");
     }
 
-    const IdExists = products.filter((product) => {
-      return product.id === id;
-    });
-
-    if (IdExists.length > 0) {
+    // const IdExists = products.filter((product) => {
+    //   return product.id === id;
+    // });
+    const [IdExists] = await db.raw(`
+    SELECT * FROM products
+    WHERE id = "${id}";
+  `);
+    
+    if (IdExists) {
       res.status(400);
       throw new Error("Id já existe!!");
     }
@@ -275,15 +317,36 @@ app.post("/products", (req: Request, res: Response) => {
     }
 
     const newProduct: TProduct = {
-      id,
-      name,
-      price,
-      category,
-      description,
-      imageUrl,
+    id,
+    name,
+    price,
+    category,
+    description,
+    imageUrl,
     };
 
-    products.push(newProduct);
+    // products.push(newProduct);
+    await db.raw(
+      `
+        INSERT INTO products (
+          id,
+          name,
+          price,
+          category,
+          description,
+          imageUrl
+        )
+        VALUES (
+          "${newProduct.id}",
+          "${newProduct.name}",
+          ${newProduct.price},
+          "${newProduct.category}",
+          "${newProduct.description}",
+          "${newProduct.imageUrl}"
+        );
+      `
+    );
+   
     res.status(201).send("Produto cadastrado com sucesso!");
   } catch (error) {
     console.log(error);
@@ -298,7 +361,143 @@ app.post("/products", (req: Request, res: Response) => {
   }
 });
 
-//createPurchase
+//createPurchase refatorado
+app.post("/purchases", async (req: Request, res: Response) => {
+  try {
+    const id = req.body.id;
+    const buyer = req.body.buyer;
+    // const productsP = req.body.products;
+    const total_price = req.body.total_price;
+
+    if (id === undefined || id === "") {
+      res.status(400);
+      throw new Error("Preencher o id da compra!");
+    } else if (typeof id !== "string") {
+      res.status(400);
+      throw new Error("O id precisa ser uma string!");
+    }
+    // const IdExists = purchases.filter((purchase) => {
+    //   return purchase.id === id;
+    // });
+    const [IdExists] = await db.raw(`
+    SELECT * FROM purchases
+    WHERE id = "${id}";
+  `);
+
+    if (IdExists) {
+      res.status(400);
+      throw new Error("Compra já existente!");
+    }
+    if (!id.startsWith("pur")) {
+      res.status(400);
+      throw new Error("O id deve começar com a string 'pur'!");
+    }
+
+    if (buyer === undefined || buyer === "") {
+      res.status(400);
+      throw new Error("Preencher o comprador!");
+    } else if (typeof buyer !== "string") {
+      res.status(400);
+      throw new Error("O comprador precisa ser uma string!");
+    }
+    // const userExists = users.filter((user) => {
+    //   return user.id === buyer;
+    // });
+    
+    const [userExists] = await db.raw(`
+    SELECT * FROM users
+    WHERE id = "${buyer}";
+  `);
+
+    if (!userExists) {
+      res.status(400);
+      throw new Error("Por favor, realize seu cadastro primeiro!");
+    }
+
+    // if (!productsP) {
+    //   res.status(400);
+    //   throw new Error("Preencha os produtos da compra!");
+    // } else {
+    //   for (const product of req.body.products) {
+    //     if (!product.productId || !product.quantity) {
+    //       res.status(400);
+    //       throw new Error(
+    //         "Os produtos da compra precisam ter id e quantidade!"
+    //       );
+    //     }
+    //   }
+    // }
+
+    // if (!Array.isArray(productsP)) {
+    //   throw new Error("O campo products é obrigatório e deve ser um array.");
+    // }
+    // let totalPrice = 0;
+    // const productsWithInfo: Array<{ product: TProduct; quantity: number }> = [];
+    // for (const product of productsP) {
+    //   if (!product.productId || typeof product.productId !== "string") {
+    //     throw new Error("productId é obrigatório e deve ser uma string.");
+    //   }
+    //   const productExists = products.find((p) => p.id === product.productId);
+
+    //   if (!productExists) {
+    //     res.status(404);
+    //     throw new Error(`Produto com id ${product.productId} não encontrado`);
+    //   }
+    //   if (!product.quantity || typeof product.quantity !== "number") {
+    //     throw new Error("quantity é obrigatório e deve ser um número.");
+    //   }
+    //   const productWithInfo = {
+    //     product: productExists,
+    //     quantity: product.quantity,
+    //   };
+    //   productsWithInfo.push(productWithInfo);
+    //   const productTotalPrice = calculateTotalPrice(
+    //     product.productId,
+    //     product.quantity
+    //   );
+    //   totalPrice += productTotalPrice;
+    // }
+    // const newPurchase: TPurchase = {
+    //   id,
+    //   buyer,
+    //   totalPrice,
+    //   products: productsWithInfo,
+    // };
+    // purchases.push(newPurchase);
+    if (total_price === undefined) {
+      res.status(400);
+      throw new Error("Preencher o preço!");
+    } else if (typeof total_price !== "number") {
+      res.status(400);
+      throw new Error("Preço precisa ser um número!");
+    }
+    await db.raw(`
+    INSERT INTO purchases (
+      id,
+      buyer_id,    
+      total_price
+    )
+    VALUES (
+      "${id}",    
+      "${buyer}",    
+      ${total_price}
+    );
+  `);
+  
+    res.status(201).send("Compra cadastrada com sucesso!");
+  } catch (error) {
+    console.log(error);
+    if (res.statusCode === 200) {
+      res.status(500);
+    }
+    if (error instanceof Error) {
+      res.send(error.message);
+    } else {
+      res.send("Erro inesperado!");
+    }
+  }
+});
+
 app.post("/purchases", (req: Request, res: Response) => {
   try {
     const id = req.body.id;
@@ -315,6 +514,7 @@ app.post("/purchases", (req: Request, res: Response) => {
     const IdExists = purchases.filter((purchase) => {
       return purchase.id === id;
     });
+    
     if (IdExists.length > 0) {
       res.status(400);
       throw new Error("Compra já existente!");
@@ -404,10 +604,14 @@ app.post("/purchases", (req: Request, res: Response) => {
   }
 });
 
-//getAllPurchases
-app.get("/purchases", (req: Request, res: Response) => {
+//getAllPurchases refatorado
+app.get("/purchases", async (req: Request, res: Response) => {
   try {
-    res.status(200).send(purchases);
+    // res.status(200).send(purchases);
+    const result = await db.raw(`
+    SELECT * FROM purchases;
+    `);
+    res.status(200).send(result);
   } catch (error) {
     console.log(error);
     if (res.statusCode === 200) {
@@ -421,11 +625,16 @@ app.get("/purchases", (req: Request, res: Response) => {
   }
 });
 
-//GetProductsById
-app.get("/products/:id", (req: Request, res: Response) => {
+//ex3 10_04
+//GetProductsById refatorado
+app.get("/products/:id", async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const result = products.find((product) => product.id === id);
+    // const result = products.find((product) => product.id === id);
+    // const result = await db.select().from('products').where({ id }).first();
+    // const result = await db.raw(`SELECT * FROM products WHERE id = ?`, [id]);
+    const result = await db.raw(`SELECT * FROM products WHERE id = "${id}"`);
+
     if (result) {
       res.status(200).send(result);
     } else {
@@ -445,11 +654,28 @@ app.get("/products/:id", (req: Request, res: Response) => {
   }
 });
 
-//GetUserPurchasesByUserId
-app.get("/users/:id/purchases", (req: Request, res: Response) => {
+//GetUserPurchasesByUserId refatorado
+app.get("/users/:id/purchases", async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
-    const result = purchases.find((user) => user.buyer === userId);
+    // const result = purchases.find((user) => user.buyer === userId);
+    const result = await db.raw(
+      `
+    SELECT
+      users.id as userId,
+      name,
+      purchases.id as purchaseId,
+      total_price as "Total price",
+      CASE WHEN paid = 0 THEN 'not paid' ELSE 'paid' END AS "Paid Status",
+      delivered_at as deliveredAt
+    FROM users
+      INNER JOIN purchases ON purchases.buyer_id = users.id
+    WHERE users.id = ?
+    ORDER BY purchases.id DESC
+  `,
+      [userId]
+    );
+
     if (result) {
       res.status(200).send(result);
     } else if (users.find((user) => user.id === userId)) {
@@ -471,6 +697,7 @@ app.get("/users/:id/purchases", (req: Request, res: Response) => {
   }
 });
 
+////////////////////////////////////////
 //DeleteUserById
 app.delete("/users/:id", (req: Request, res: Response) => {
   try {
