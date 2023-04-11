@@ -269,6 +269,7 @@ CREATE TABLE
     purchases (
         id TEXT PRIMARY KEY UNIQUE NOT NULL,
         total_price REAL NOT NULL,        
+        created_at TIMESTAMP DEFAULT (datetime('now', '-3 hours')),
         paid INTEGER NOT NULL DEFAULT (0),
         delivered_at TEXT,
         buyer_id TEXT NOT NULL,        
@@ -343,6 +344,11 @@ VALUES
 ('pur005', 'prod010', 3),
 ('pur006', 'prod010', 7),
 ('pur007', 'prod040', 1);
+
+INSERT INTO purchases_products (purchase_id, product_id, quantity)
+VALUES
+('pur001', 'prod010', 7),
+('pur001', 'prod040', 1);
 
 SELECT *
 FROM purchases_products

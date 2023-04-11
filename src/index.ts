@@ -24,13 +24,16 @@ app.get("/ping", (req: Request, res: Response) => {
   res.send("Pong!");
 });
 
-//ex1 10_04
-//getAllUsers refatorado
+//ex1 11_04
+//getAllUsers refatorado query builder
 app.get("/users", async (req: Request, res: Response) => {
   try {
-    const result = await db.raw(`
-    SELECT * FROM users;
-    `);
+    // const result = await db.raw(`
+    // SELECT * FROM users;
+    // `);
+
+    const result = await db("users");
+
     res.status(200).send(result);
   } catch (error) {
     console.log(error);
@@ -45,12 +48,16 @@ app.get("/users", async (req: Request, res: Response) => {
   }
 });
 
-//getAllProducts refatorado
+//ex1 11_04
+//getAllProducts refatorado query builder
 app.get("/products", async (req: Request, res: Response) => {
   try {
-    const result = await db.raw(`
-    SELECT * FROM products;
-    `);
+    // const result = await db.raw(`
+    // SELECT * FROM products;
+    // `);
+
+    const result = await db("products");
+
     res.status(200).send(result);
   } catch (error) {
     console.log(error);
@@ -65,10 +72,13 @@ app.get("/products", async (req: Request, res: Response) => {
   }
 });
 
-//searchProductByName refatorado
+//ex1 11_04
+//searchProductByName refatorado query builder
 app.get("/product/search", async (req: Request, res: Response) => {
   try {
-    const q = req.query.q as string;
+    // const q = req.query.q as string;
+    const q = (req.query.q as string).toLowerCase();
+
     // const {q} = req.query
     if (q.length < 1) {
       res.status(400);
@@ -78,12 +88,17 @@ app.get("/product/search", async (req: Request, res: Response) => {
     //   return product.name.toLowerCase().includes(q.toString().toLowerCase());
     // });
 
-    const result = await db.raw(
-      `
-  SELECT * FROM products WHERE LOWER(name) LIKE :filter;
-`,
-      { filter: `%${q.toLowerCase()}%` }
-    );
+    //     const result = await db.raw(
+    //       `
+    //   SELECT * FROM products WHERE LOWER(name) LIKE :filter;
+    // `,
+    //       { filter: `%${q.toLowerCase()}%` }
+    //     );
+
+    const result = await db
+      .select("*")
+      .from("products")
+      .where("name", "like", `%${q}%`);
 
     res.status(200).send(result);
   } catch (error) {
@@ -128,13 +143,12 @@ app.post("/users", async (req: Request, res: Response) => {
     const [userExists] = await db.raw(`
     SELECT * FROM users
     WHERE id = "${id}";
-  `); 
-  
-  if (userExists) {
-    res.status(400);
-    throw new Error("O id de usuário já existe!!");
-  }
-    
+  `);
+
+    if (userExists) {
+      res.status(400);
+      throw new Error("O id de usuário já existe!!");
+    }
 
     if (name === undefined || name === "") {
       res.status(400);
@@ -151,7 +165,7 @@ app.post("/users", async (req: Request, res: Response) => {
     const [nameExists] = await db.raw(`
     SELECT * FROM users
     WHERE name = "${name}";
-  `); 
+  `);
 
     if (nameExists) {
       res.status(400);
@@ -227,7 +241,6 @@ app.post("/users", async (req: Request, res: Response) => {
 
     res.status(201).send("Usuário cadastrado com sucesso!");
   } catch (error) {
-    
     console.log(error);
     if (res.statusCode === 200) {
       res.status(500);
@@ -270,7 +283,7 @@ app.post("/products", async (req: Request, res: Response) => {
     SELECT * FROM products
     WHERE id = "${id}";
   `);
-    
+
     if (IdExists) {
       res.status(400);
       throw new Error("Id já existe!!");
@@ -317,12 +330,12 @@ app.post("/products", async (req: Request, res: Response) => {
     }
 
     const newProduct: TProduct = {
-    id,
-    name,
-    price,
-    category,
-    description,
-    imageUrl,
+      id,
+      name,
+      price,
+      category,
+      description,
+      imageUrl,
     };
 
     // products.push(newProduct);
@@ -346,7 +359,7 @@ app.post("/products", async (req: Request, res: Response) => {
         );
       `
     );
-   
+
     res.status(201).send("Produto cadastrado com sucesso!");
   } catch (error) {
     console.log(error);
@@ -403,7 +416,7 @@ app.post("/purchases", async (req: Request, res: Response) => {
     // const userExists = users.filter((user) => {
     //   return user.id === buyer;
     // });
-    
+
     const [userExists] = await db.raw(`
     SELECT * FROM users
     WHERE id = "${buyer}";
@@ -483,7 +496,7 @@ app.post("/purchases", async (req: Request, res: Response) => {
       ${total_price}
     );
   `);
-  
+
     res.status(201).send("Compra cadastrada com sucesso!");
   } catch (error) {
     console.log(error);
@@ -514,7 +527,7 @@ app.post("/purchases", (req: Request, res: Response) => {
     const IdExists = purchases.filter((purchase) => {
       return purchase.id === id;
     });
-    
+
     if (IdExists.length > 0) {
       res.status(400);
       throw new Error("Compra já existente!");
@@ -930,24 +943,97 @@ app.delete("/purchases/:id", (req: Request, res: Response) => {
   }
 });
 
-//getPurchaseById
-app.get("/purchases/:id", (req: Request, res: Response) => {
+//ex2 11_04
+//getPurchaseById refatorado query builder
+app.get("/purchases/:id", async (req: Request, res: Response) => {
   try {
     const purchaseId = req.params.id;
-    const result = purchases.find((purchase) => purchase.id === purchaseId);
+    // const result = purchases.find((purchase) => purchase.id === purchaseId);
+    const [result] = await db("purchases").where({ id: purchaseId });
+    
     if (result) {
-      const user = users.find((user) => user.id === result.buyer);
-      const purchase = {
-        purchaseId: result.id,
-        buyerId: result.buyer,
-        buyerName: user.name,
-        buyerEmail: user.email,
-        totalPrice: result.totalPrice,
-        createdAt: user.createdAt,
-        paid: 0,
-        products: [...result.products],
-      };
-      res.status(200).send(purchase);
+      // const user = users.find((user) => user.id === result.buyer);
+      // const [user] = await db('users').where({ id: purchaseId });
+      // console.log(user)
+
+      // const purchase = {
+      //   purchaseId: result.id,
+      //   buyerId: result.buyer,
+      //   buyerName: user.name,
+      //   buyerEmail: user.email,
+      //   totalPrice: result.totalPrice,
+      //   createdAt: user.createdAt,
+      //   paid: 0,
+      //   products: [...result.products],
+      // };
+      
+      const [purchase] = await db("users")
+      .select(
+        "purchases.id as purchaseId",
+        "total_price as totalPrice",
+        "purchases.created_at as createdAt ",
+        db.raw("CASE WHEN paid = 0 THEN 'false' ELSE 'true' END AS 'isPaid'"),
+        "users.id as buyerId",
+        "users.email as email",
+        "users.name as name"
+      )
+      .innerJoin("purchases", "purchases.buyer_id", "=", "users.id")
+      .where("purchases.id", "=", purchaseId)
+      .orderBy("purchases.id", "desc");
+
+      const productsList = await db("purchases_products")
+      .select(
+        "purchases_products.purchase_id as id",
+        "products.name as name",
+        "products.price",
+        "products.category",
+        "products.description",
+        "products.imageUrl",
+        "purchases_products.quantity"
+      )
+      .innerJoin("products", "purchases_products.product_id", "=", "products.id")      
+      .where("purchases_products.purchase_id", "=", purchaseId);
+    
+      const result = {...purchase, productsList}
+
+    //   const [purchase] = await db("purchases")
+    //     .select(
+    //       "purchases.id as purchaseId",
+    //       "total_price as totalPrice",
+    //       "purchases.created_at as createdAt",
+    //       db.raw("CASE WHEN paid = 0 THEN 'false' ELSE 'true' END AS 'isPaid'"),
+    //       "users.id as buyerId",
+    //       "users.email as email",
+    //       "users.name as name",
+    //       db.raw(`json_group_array(
+    //   json_object(
+    //     'productId', products.id, 
+    //     'name', products.name, 
+    //     'price', products.price, 
+    //     'category', products.category, 
+    //     'description', products.description, 
+    //     'imageUrl', products.imageUrl, 
+    //     'quantity', purchases_products.quantity
+    //   )
+    // ) as productsList`)
+    //     )
+    //     .innerJoin("users", "purchases.buyer_id", "=", "users.id")
+    //     .innerJoin(
+    //       "purchases_products",
+    //       "purchases_products.purchase_id",
+    //       "=",
+    //       "purchases.id"
+    //     )
+    //     .innerJoin(
+    //       "products",
+    //       "purchases_products.product_id",
+    //       "=",
+    //       "products.id"
+    //     )
+    //     .where("purchases.id", "=", purchaseId);
+    
+      // res.status(200).send(purchase);
+      res.status(200).send(result);
     } else {
       res.status(404);
       throw new Error("Compra não encontrada!");
