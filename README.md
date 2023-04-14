@@ -15,7 +15,7 @@ A aplicação utiliza um banco de dados real para armazenar as informações de 
 ## **Banco de dados**
 ![image](https://user-images.githubusercontent.com/29845719/214396608-ddcfd097-e615-44f9-acbe-f815f9abb83f.png)
 
-## **Conteúdos abordados:**
+## **Tecnologias Utilizadas:**
 - NodeJS
 - Typescript
 - Express
