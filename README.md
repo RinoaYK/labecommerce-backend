@@ -74,7 +74,7 @@ Para instalar a **API labecommerce-backend**, você precisará seguir os seguint
 - Abra o terminal no diretório do projeto e execute o comando npm install para instalar todas as dependências necessárias.
 - Em seguida, execute o comando npm run start para iniciar o servidor localmente. Ou execute o comando npm run dev para iniciar o servidor da API em modo de desenvolvimento.
 - Agora você pode acessar a API usando o endpoint http://localhost:3000/.
-- Para obter informações mais detalhadas sobre como usar este endpoint, consulte a documentação da [**API labecommerce-backend**](https://documenter.getpostman.com/view/25826614/2s93RUvCdA).
+- Para obter informações mais detalhadas sobre como usar os endpoints, consulte a documentação da [**API labecommerce-backend**](https://documenter.getpostman.com/view/25826614/2s93RUvCdA).
 
 
         
