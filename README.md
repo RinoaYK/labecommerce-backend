@@ -5,7 +5,11 @@
 <br>
 
 # Projeto labecommerce
-É o primeiro projeto do back-end, onde praticamos toda a base de criação de uma API vinculada a um banco de dados real.
+A API labecommerce-backend é uma aplicação para registro, alteração e deleção de usuários, produtos e compras. Ela oferece funcionalidades para gerenciar o ciclo completo de vendas de uma loja online, desde a criação de um usuário até a finalização de uma compra.
+
+Os endpoints disponíveis na API permitem criar, listar, atualizar e excluir usuários, produtos e compras. Além disso, é possível obter informações detalhadas sobre cada compra realizada, incluindo o nome do comprador, o valor total da compra, a data de criação e entrega, o status de pagamento e a lista de produtos comprados.
+
+A aplicação utiliza um banco de dados real para armazenar as informações de usuários, produtos e compras, garantindo a segurança e integridade dos dados. 
 <br>
 <br>
 ## **Banco de dados**
@@ -59,4 +63,18 @@
             - Edita/atualiza uma compra existente.
         - Delete purchase by id
             - Deleta um pedido existente.
+<br>     
+
+## **Instalação:**
+
+Para instalar a **API labecommerce-backend**, você precisará seguir os seguintes passos:
+
+- Certifique-se de que o Node.js e o gerenciador de pacotes NPM estejam instalados em seu sistema.
+- Baixe ou clone o repositório do projeto em sua máquina.
+- Abra o terminal no diretório do projeto e execute o comando npm install para instalar todas as dependências necessárias.
+- Em seguida, execute o comando npm run start para iniciar o servidor localmente. Ou execute o comando npm run dev para iniciar o servidor da API em modo de desenvolvimento.
+- Agora você pode acessar a API usando o endpoint http://localhost:3000/.
+- Para obter informações mais detalhadas sobre como usar este endpoint, consulte a documentação da [**API labecommerce-backend**](https://documenter.getpostman.com/view/25826614/2s93RUvCdA).
+
+
         
