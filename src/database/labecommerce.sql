@@ -1,24 +1,8 @@
 -- Active: 1680544226904@@127.0.0.1@3306
 
---users
-
--- CREATE TABLE users (
-
---     id TEXT PRIMARY KEY UNIQUE NOT NULL,
-
---     name VARCHAR(50) TEXT NOT NULL,
-
---     email TEXT UNIQUE NOT NULL,
-
---     password TEXT NOT NULL,
-
---     created_at TEXT NOT NULL
-
--- );
-
+---------- users
 CREATE TABLE
-    users (
-        -- id INTEGER PRIMARY KEY AUTOINCREMENT,        
+    users (       
         id TEXT PRIMARY KEY UNIQUE NOT NULL,
         name TEXT VARCHAR(50) NOT NULL,
         email TEXT UNIQUE NOT NULL,
@@ -27,6 +11,8 @@ CREATE TABLE
     );
 
 SELECT * FROM users;
+
+SELECT * FROM users ORDER BY id ASC;
 
 PRAGMA table_info('users');
 
@@ -51,8 +37,29 @@ VALUES (
         "beltrano00"
     );
 
---products
+INSERT INTO
+    users (id, name, email, password)
+VALUES (
+        "u004",
+        "Deltrano",
+        "deltrano@email.com",
+        "deltrano00"
+    );
 
+UPDATE users
+SET
+    email = "beltraninho@gmail.com",
+    password = "novasenha"
+WHERE id = "u003";
+
+UPDATE users
+SET
+    email = "beltraninho@gmail.com"
+WHERE id = "u003";
+
+DELETE FROM users WHERE id = "u001";
+
+---------- products
 CREATE TABLE
     products (
         id TEXT PRIMARY KEY UNIQUE NOT NULL,
@@ -64,6 +71,10 @@ CREATE TABLE
     );
 
 SELECT * FROM products;
+
+SELECT * FROM products ORDER BY id ASC LIMIT 1;
+
+DELETE FROM products WHERE id = (SELECT id FROM products ORDER BY id ASC LIMIT 1);
 
 DROP TABLE products;
 
@@ -112,78 +123,6 @@ VALUES (
         "https://github.com/RinoaYK/projeto-frontendreact/blob/main/src/img/items/img53.png?raw=true"
     );
 
--- comandos para modificar e excluir um item da tabela
-
-UPDATE users
-SET
-    email = "beltraninho@gmail.com"
-WHERE id = "u003";
-
-DELETE FROM users WHERE id = "u001";
-
---testes:
-
-SELECT AVG(price) FROM products;
-
-SELECT * FROM products WHERE name LIKE "cam%";
-
-SELECT name, price FROM products ORDER BY price ASC;
-
-SELECT * FROM products WHERE price > 10 AND price <= 26;
-
-SELECT * FROM products WHERE price > 10 AND category = "Camisetas";
-
-SELECT *
-FROM products
-WHERE
-    category IN ('Camisetas', 'Brinquedos')
-ORDER BY price ASC
-LIMIT 3
-OFFSET 2;
-
---Ex1
-
--- Get All Users
-
--- retorna todos os usuários cadastrados
-
-SELECT * FROM users;
-
--- Get All Products
-
--- retorna todos os produtos cadastrados
-
-SELECT * FROM products;
-
--- Search Product by name
-
--- crie um termo de busca, por exemplo "monitor"
-
--- retorna o resultado baseado no termo de busca
-
-SELECT * FROM products WHERE name LIKE "%cam%";
-
--- Create User
-
--- crie um novo usuário
-
--- insere o item mockado na tabela users
-
-INSERT INTO
-    users (id, name, email, password)
-VALUES (
-        "u004",
-        "Deltrano",
-        "deltrano@email.com",
-        "deltrano00"
-    );
-
--- Create Product
-
--- crie um novo produto
-
--- insere o item mockado na tabela products
-
 INSERT INTO products
 VALUES (
         "prod004",
@@ -194,39 +133,32 @@ VALUES (
         "https://github.com/RinoaYK/projeto-frontendreact/blob/main/src/img/items/img4.png?raw=true"
     );
 
---Ex2
-
--- Get Products by id
-
--- busca de produtos por id
+SELECT AVG(price) FROM products;
 
 SELECT * FROM products WHERE id = "prod001";
 
--- Delete User by id
+SELECT * FROM products WHERE name LIKE "cam%";
 
--- deleção de user por id
+SELECT name, price FROM products ORDER BY price ASC;
 
-DELETE FROM users WHERE id = "u001";
+SELECT *
+FROM products
+WHERE price >= 10 AND price <= 30
+ORDER BY price ASC;
 
--- Delete Product by id
+SELECT * FROM products WHERE price > 10 AND category = "Camisetas";
 
--- deleção de produto por id
+SELECT * FROM products ORDER BY price ASC LIMIT 20 OFFSET 0;
 
-DELETE FROM users WHERE id = "prod001";
+SELECT *
+FROM products
+WHERE
+    category IN ('Camisetas', 'Brinquedos')
+ORDER BY price ASC
+LIMIT 3
+OFFSET 2;
 
--- Edit User by id
-
--- edição de user por id
-
-UPDATE users
-SET
-    email = "beltraninho@gmail.com",
-    password = "novasenha"
-WHERE id = "u003";
-
--- Edit Product by id
-
--- edição de produto por id
+DELETE FROM products WHERE id = "prod001";
 
 UPDATE products
 SET
@@ -234,37 +166,7 @@ SET
     price = 50
 WHERE id = "prod002";
 
---Ex3
-
--- Copie as queries do exercício 1 e refatore-as
-
--- Get All Users
-
--- retorna o resultado ordenado pela coluna email em ordem crescente
-
-SELECT * FROM users ORDER BY email ASC;
-
--- Get All Products versão 1
-
--- retorna o resultado ordenado pela coluna price em ordem crescente
-
--- limite o resultado em 20 iniciando pelo primeiro item
-
-SELECT * FROM products ORDER BY price ASC LIMIT 20 OFFSET 0;
-
--- Get All Products versão 2
-
--- seleção de um intervalo de preços, por exemplo entre 100.00 e 300.00
-
--- retorna os produtos com preços dentro do intervalo definido em ordem crescente
-
-SELECT *
-FROM products
-WHERE price >= 10 AND price <= 30
-ORDER BY price ASC;
-
---ex1
--- purchases
+---------- purchases
 CREATE TABLE
     purchases (
         id TEXT PRIMARY KEY UNIQUE NOT NULL,
@@ -281,9 +183,6 @@ ORDER BY buyer_id ASC;
 
 DROP TABLE purchases;
 
---ex2
--- a) Crie dois pedidos para cada usuário cadastrado
--- No mínimo 4 no total (ou seja, pelo menos 2 usuários diferentes) e devem iniciar com a data de entrega nula.
 INSERT INTO
     purchases (id, total_price, buyer_id)
 VALUES 
@@ -296,19 +195,14 @@ VALUES
     ("pur007", 160, "u004"),
     ("pur008", 40, "u001");
 
--- b) Edite o status da data de entrega de um pedido
--- Simule que o pedido foi entregue no exato momento da sua edição (ou seja, data atual).
 -- delivered_at = datetime('now', '-3 hours'),
 -- delivered_at = datetime('now', 'localtime'),
 UPDATE purchases
 SET
     delivered_at = datetime('now', 'localtime'),
     paid = 1
-WHERE id = "pur001";
+WHERE id = "pur003";
 
--- ex3
--- Crie a query de consulta utilizando junção para simular um endpoint de histórico de compras de um determinado usuário.
--- Mocke um valor para a id do comprador, ela deve ser uma das que foram utilizadas no exercício 2.
 SELECT
     users.id as userId,
     name,
@@ -321,13 +215,13 @@ FROM users
 WHERE users.id= "u001"
 ORDER BY purchases.id DESC;
 
---ex1
+---------- purchases_products
 CREATE TABLE purchases_products (
     purchase_id TEXT NOT NULL,
     product_id TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT(1),
     FOREIGN KEY (purchase_id) REFERENCES purchases(id),
-    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE,
     PRIMARY KEY (purchase_id, product_id)
 );
 
@@ -347,22 +241,26 @@ VALUES
 
 INSERT INTO purchases_products (purchase_id, product_id, quantity)
 VALUES
-('pur001', 'prod010', 7),
-('pur001', 'prod040', 1);
+('pur019', 'prod053', 7),
+('pur019', 'prod011', 3);
+
+INSERT INTO purchases_products (purchase_id, product_id, quantity)
+VALUES
+('pur002', 'prod003', 3);
 
 SELECT *
 FROM purchases_products
 INNER JOIN purchases ON purchases.id = purchases_products.purchase_id
 INNER JOIN products ON products.id = purchases_products.product_id;
 
-UPDATE purchases
-SET total_price = (
-    SELECT SUM(products.price * purchases_products.quantity)
+UPDATE purchases SET 
+  total_price = (
+    SELECT ROUND(SUM(products.price * purchases_products.quantity), 2)
     FROM purchases_products
     JOIN products ON products.id = purchases_products.product_id
     WHERE purchases_products.purchase_id = purchases.id
-)
-WHERE EXISTS (
+  )
+  WHERE EXISTS (
     SELECT 1
     FROM purchases_products
     WHERE purchases_products.purchase_id = purchases.id
@@ -382,6 +280,7 @@ SELECT
 FROM purchases_products
 INNER JOIN purchases ON purchases.id = purchases_products.purchase_id
 INNER JOIN products ON products.id = purchases_products.product_id
-INNER JOIN users ON users.id = purchases.buyer_id;
+INNER JOIN users ON users.id = purchases.buyer_id
+ORDER BY purchases_products.purchase_id ASC;
 
 
