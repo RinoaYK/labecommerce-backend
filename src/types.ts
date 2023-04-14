@@ -1,11 +1,3 @@
-export type TUser = {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: string; // formato: YYYY-MM-DD HH:MM:SS
-};
-
 export enum CATEGORY {
   ACESSORIES = "Acessórios",
   TOYS = "Brinquedos",
@@ -16,7 +8,14 @@ export enum CATEGORY {
   PLUSHS = "Pelúcias",
 }
 
-export type TProduct = {
+export type TUserDB = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+};
+
+export type TProductDB = {
   id: string;
   name: string;
   price: number;
@@ -25,12 +24,42 @@ export type TProduct = {
   imageUrl: string;
 };
 
-export type TPurchase = {
-  id: string,
-  buyer: string,
-  totalPrice: number,
+export type TPurchaseDB = {
+  id: string;
+  buyer: string;
+  totalPrice: number;
   products: Array<{
-    product: TProduct,
-    quantity: number
-  }>
+    product: TProductDB;
+    quantity: number;
+  }>;
+};
+
+export type TProductResumeDB = {
+  id: string;  
+  price: number;
+  quantity: number;
+};
+
+export type TUserPurchaseDB = {
+  purchaseId: string;
+  buyerId: string;
+  buyerName: string;
+  buyerEmail: string;
+  totalPrice: number;
+  createdAt: string;
+  deliveredAt: string;
+  isPaid: string;
+  productsList: TProductResumeDB[];
+};
+
+export type TPurchasesDetailedDB = {
+  purchaseId: string;
+  buyerId: string;
+  buyerName: string;
+  buyerEmail: string;
+  totalPrice: number;
+  createdAt: string;
+  deliveredAt: string;
+  isPaid: string;
+  productsList: TProductDB[];
 };
